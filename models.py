@@ -52,8 +52,8 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True)
     date_time = Column(DateTime)
-    doctor_id = Column(Integer, ForeignKey("doctor.id"))
-    patient_id = Column(Integer, ForeignKey("patient.id"))
+    doctor_id = Column(Integer, ForeignKey("doctors.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id"))
 
 
 class Prescription(Base):
@@ -63,5 +63,5 @@ class Prescription(Base):
     medication = Column(Text)
     dosage = Column(Text)
     date_prescribed = Column(Date)
-    doctor_id = Column(Integer, ForeignKey("doctor.id"))
-    patient_id = Column(Integer, ForeignKey("patient.id"))
+    doctor_id = Column(Integer, ForeignKey("doctors.id"))
+    patient_id = Column(Integer, ForeignKey("patients.id"))
