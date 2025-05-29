@@ -69,13 +69,15 @@ def get_doctors(session: Session = Depends(get_db)):
     doctors = session.query(Doctor).all()
     return doctors
 
-#gets a specific doctor 
+
+# gets a specific doctor
 @app.get("/doctors/{doctor_id}")
-def get_doctor(doctor_id: int, doctor: DoctorSchema, db:Session = Depends(get_db)):
+def get_doctor(doctor_id: int, doctor: DoctorSchema, db: Session = Depends(get_db)):
     doctor = db.query(Doctor).get(doctor_id)
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
     return doctor
+
 
 # adding a doctor
 @app.post("/doctors")
@@ -86,7 +88,8 @@ def add_doctor(doctor: DoctorSchema, db: Session = Depends(get_db)):
     db.refresh(new_doctor)
     return {"message": "Doctor added successfully"}
 
-#updating the record of a specific doctor
+
+# updating the record of a specific doctor
 @app.patch("/doctors/{doctor_id}")
 def update_doctor(doctor_id: int, doctor: DoctorSchema, db: Session = Depends(get_db)):
     db_doctor = db.query(Doctor).get(doctor_id)
@@ -98,7 +101,8 @@ def update_doctor(doctor_id: int, doctor: DoctorSchema, db: Session = Depends(ge
     db.refresh(db_doctor)
     return {"message": "Doctor record updated successfully"}
 
-#deleting the record of a specific doctor
+
+# deleting the record of a specific doctor
 @app.delete("/doctors/{doctor_id}")
 def delete_doctor(doctor_id: int, db: Session = Depends(get_db)):
     doctor = db.query(Doctor).get(doctor_id)
@@ -115,13 +119,15 @@ def get_appointments(session: Session = Depends(get_db)):
     appointments = session.query(Appointment).all()
     return appointments
 
-# getting a specific appointment 
+
+# getting a specific appointment
 @app.get("/appointments/{appointment_id}")
 def get_appointment(appointment_id: int, db: Session = Depends(get_db)):
     appointment = db.query(Appointment).get(appointment_id)
-    if not appointment 
+    if not appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
     return appointment
+
 
 # adding an appointment
 @app.post("/appointments")
@@ -132,9 +138,12 @@ def add_appointment(appointment: AppointmentSchema, db: Session = Depends(get_db
     db.refresh(new_appointment)
     return {"message": "Appointment created successfully"}
 
-#updating an appointment
+
+# updating an appointment
 @app.patch("/appointments/{appointment_id}")
-def update_appointment(appointment_id: int, appointment: AppointmentSchema, db: Session = Depends(get_db)):
+def update_appointment(
+    appointment_id: int, appointment: AppointmentSchema, db: Session = Depends(get_db)
+):
     db_appointment = db.query(Appointment).get(appointment_id)
     if not db_appointment:
         raise HTTPException(status_code=404, detail="Appointment not found")
@@ -144,7 +153,8 @@ def update_appointment(appointment_id: int, appointment: AppointmentSchema, db: 
     db.refresh(db_appointment)
     return {"message": "Appointment updated successfully"}
 
-#deleting an appointment
+
+# deleting an appointment
 @app.delete("/appointments/{appointment_id}")
 def delete_appointment(appointment_id: int, db: Session = Depends(get_db)):
     appointment = db.query(Appointment).get(appointment_id)
@@ -162,6 +172,15 @@ def get_prescriptions(session: Session = Depends(get_db)):
     return prescriptions
 
 
+# getting a specific prescription
+@app.get("/prescriptions/{prescription_id}")
+def get_prescription(prescription_id: int, db: Session = Depends(get_db)):
+    prescription = db.query(Prescription).get(prescription_id)
+    if not prescription:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+    return prescription
+
+
 # adding a prescription
 @app.post("/prescriptions")
 def add_prescription(prescription: PrescriptionSchema, db: Session = Depends(get_db)):
@@ -170,3 +189,31 @@ def add_prescription(prescription: PrescriptionSchema, db: Session = Depends(get
     db.commit()
     db.refresh(new_prescription)
     return {"message": "Prescription created successfully"}
+
+
+# updates a prescription
+@app.patch("/prescriptions/{prescription_id}")
+def update_prescription(
+    prescription_id: int,
+    prescription: PrescriptionSchema,
+    db: Session = Depends(get_db),
+):
+    db_prescription = db.query(Prescription).get(prescription_id)
+    if not db_prescription:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+    for key, value in prescription.model_dump().items():
+        setattr(db_prescription, key, value)
+    db.commit()
+    db.refresh(db_prescription)
+    return {"message": "Prescription updated successfully"}
+
+
+# deletes a prescription
+@app.delete("/prescriptions/{prescription_id}")
+def delete_prescription(prescription_id: int, db: Session = Depends(get_db)):
+    prescription = db.query(Prescription).get(prescription_id)
+    if not prescription:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+    db.delete(prescription)
+    db.commit()
+    return {"message": "Prescription deleted successfully"}
