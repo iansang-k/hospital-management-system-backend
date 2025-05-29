@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from models import get_db, Patient, Doctor, Appointment, Prescription
@@ -18,6 +18,15 @@ def patients(session: Session = Depends(get_db)):
     return patients
 
 
+# gets a specific patient
+@app.get("/patients/{patient_id}")
+def get_patient(patient_id: int, db: Session = Depends(get_db)):
+    patient = db.query(Patient).get(patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return patient
+
+
 # adding a patient
 @app.post("/patients")
 def add_patient(patient: PatientSchema, db: Session = Depends(get_db)):
@@ -28,26 +37,53 @@ def add_patient(patient: PatientSchema, db: Session = Depends(get_db)):
     return {"message": "Patient added successfully"}
 
 
+# updates a specific patient
+@app.patch("/patient/{patient_id}")
+def update_patient(
+    patient_id: int, patient: PatientSchema, db: Session = Depends(get_db)
+):
+    db_patient = db.query(Patient).get(patient_id)
+    if not db_patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    for key, value in patient.model_dump().items():
+        setattr(db_patient, key, value)
+    db.commit()
+    db.refresh(db_patient)
+    return {"message": "Patient record updated successfully"}
+
+# deleting a patient record
+@app.delete("/patient/{patient_id}")
+def delete_patient(patient_id: int, db:Session = Depends(get_db)):
+    patient = db.query(Patient).get(patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    db.delete(patient)
+    db.commit()
+    return{"message": "Patient deleted successfully"}
+
+
 # gets all doctors
 @app.get("/doctors")
-def get_doctors(db: Session = Depends(get_db)):
-    return db.query(Doctor).all()
+def get_doctors(session: Session = Depends(get_db)):
+    doctors = session.query(Doctor).all()
+    return doctors
 
 
 # adding a doctor
-@app.post
+@app.post("/doctors")
 def add_doctor(doctor: DoctorSchema, db: Session = Depends(get_db)):
     new_doctor = Doctor(**doctor.model_dump())
     db.add(new_doctor)
     db.commit()
     db.refresh(new_doctor)
-    return new_doctor
+    return {"message": "Doctor added successfully"}
 
 
 # gets all appointments
 @app.get("/appointments")
-def get_appointments(db: Session = Depends(get_db)):
-    return db.query(Appointment).all()
+def get_appointments(session: Session = Depends(get_db)):
+    appointments = session.query(Appointment).all()
+    return appointments
 
 
 # adding an appointment
@@ -57,12 +93,15 @@ def add_appointment(appointment: AppointmentSchema, db: Session = Depends(get_db
     db.add(new_appointment)
     db.commit()
     db.refresh(new_appointment)
-    return new_appointment
+    return {"message": "Appointment created successfully"}
 
-# gets all prescriptions 
-app.get("/prescriptions")
-def get_prescriptions(db: Session = Depends(get_db)):
-    return db.query(Prescription).all()
+
+# gets all prescriptions
+@app.get("/prescriptions")
+def get_prescriptions(session: Session = Depends(get_db)):
+    prescriptions = session.query(Prescription).all()
+    return prescriptions
+
 
 # adding a prescription
 @app.post("/prescriptions")
@@ -71,4 +110,4 @@ def add_prescription(prescription: PrescriptionSchema, db: Session = Depends(get
     db.add(new_prescription)
     db.commit()
     db.refresh(new_prescription)
-    return new_prescription
+    return {"message": "Prescription created successfully"}
