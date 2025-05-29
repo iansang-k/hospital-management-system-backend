@@ -51,15 +51,16 @@ def update_patient(
     db.refresh(db_patient)
     return {"message": "Patient record updated successfully"}
 
+
 # deleting a patient record
 @app.delete("/patient/{patient_id}")
-def delete_patient(patient_id: int, db:Session = Depends(get_db)):
+def delete_patient(patient_id: int, db: Session = Depends(get_db)):
     patient = db.query(Patient).get(patient_id)
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
     db.delete(patient)
     db.commit()
-    return{"message": "Patient deleted successfully"}
+    return {"message": "Patient deleted successfully"}
 
 
 # gets all doctors
@@ -68,6 +69,13 @@ def get_doctors(session: Session = Depends(get_db)):
     doctors = session.query(Doctor).all()
     return doctors
 
+#gets a specific doctor 
+@app.get("/doctors/{doctor_id}")
+def get_doctor(doctor_id: int, doctor: DoctorSchema, db:Session = Depends(get_db)):
+    doctor = db.query(Doctor).get(doctor_id)
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    return doctor
 
 # adding a doctor
 @app.post("/doctors")
@@ -78,12 +86,36 @@ def add_doctor(doctor: DoctorSchema, db: Session = Depends(get_db)):
     db.refresh(new_doctor)
     return {"message": "Doctor added successfully"}
 
+#updating the record of a specific doctor
+@app.patch("/doctors/{doctor_id}")
+def update_doctor(doctor_id: int, doctor: DoctorSchema, db: Session = Depends(get_db)):
+    db_doctor = db.query(Doctor).get(doctor_id)
+    if not db_doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    for key, value in doctor.model_dump().items():
+        setattr(db_doctor, key, value)
+    db.commit()
+    db.refresh(db_doctor)
+    return {"message": "Doctor record updated successfully"}
+
+#deleting the record of a specific doctor
+@app.delete("/doctors/{doctor_id}")
+def delete_doctor(doctor_id: int, db: Session = Depends(get_db)):
+    doctor = db.query(Doctor).get(doctor_id)
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    db.delete(doctor)
+    db.commit()
+    return {"message": "Doctor deleted successfully"}
+
 
 # gets all appointments
 @app.get("/appointments")
 def get_appointments(session: Session = Depends(get_db)):
     appointments = session.query(Appointment).all()
     return appointments
+
+# getting a specific appointment 
 
 
 # adding an appointment
