@@ -69,15 +69,13 @@ def get_doctors(session: Session = Depends(get_db)):
     doctors = session.query(Doctor).all()
     return doctors
 
-
 # gets a specific doctor
 @app.get("/doctors/{doctor_id}")
-def get_doctor(doctor_id: int, doctor: DoctorSchema, db: Session = Depends(get_db)):
-    doctor = db.query(Doctor).get(doctor_id)
+def get_doctor(doctor_id: int, db: Session = Depends(get_db)):
+    doctor = db.get(Doctor, doctor_id)
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
     return doctor
-
 
 # adding a doctor
 @app.post("/doctors")
