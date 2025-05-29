@@ -116,7 +116,12 @@ def get_appointments(session: Session = Depends(get_db)):
     return appointments
 
 # getting a specific appointment 
-
+@app.get("/appointments/{appointment_id}")
+def get_appointment(appointment_id: int, db: Session = Depends(get_db)):
+    appointment = db.query(Appointment).get(appointment_id)
+    if not appointment 
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return appointment
 
 # adding an appointment
 @app.post("/appointments")
@@ -126,6 +131,28 @@ def add_appointment(appointment: AppointmentSchema, db: Session = Depends(get_db
     db.commit()
     db.refresh(new_appointment)
     return {"message": "Appointment created successfully"}
+
+#updating an appointment
+@app.patch("/appointments/{appointment_id}")
+def update_appointment(appointment_id: int, appointment: AppointmentSchema, db: Session = Depends(get_db)):
+    db_appointment = db.query(Appointment).get(appointment_id)
+    if not db_appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    for key, value in appointment.model_dump().items():
+        setattr(db_appointment, key, value)
+    db.commit()
+    db.refresh(db_appointment)
+    return {"message": "Appointment updated successfully"}
+
+#deleting an appointment
+@app.delete("/appointments/{appointment_id}")
+def delete_appointment(appointment_id: int, db: Session = Depends(get_db)):
+    appointment = db.query(Appointment).get(appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    db.delete(appointment)
+    db.commit()
+    return {"message": "Appointment deleted successfully"}
 
 
 # gets all prescriptions
