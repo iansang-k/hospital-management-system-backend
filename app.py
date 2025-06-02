@@ -8,7 +8,16 @@ from schemas import PatientSchema, DoctorSchema, PrescriptionSchema, Appointment
 app = FastAPI()
 
 # network requests from all servers
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # gets all patients
@@ -38,7 +47,7 @@ def add_patient(patient: PatientSchema, db: Session = Depends(get_db)):
 
 
 # updates a specific patient
-@app.patch("/patient/{patient_id}")
+@app.patch("/patients/{patient_id}")
 def update_patient(
     patient_id: int, patient: PatientSchema, db: Session = Depends(get_db)
 ):
@@ -53,7 +62,7 @@ def update_patient(
 
 
 # deleting a patient record
-@app.delete("/patient/{patient_id}")
+@app.delete("/patients/{patient_id}")
 def delete_patient(patient_id: int, db: Session = Depends(get_db)):
     patient = db.query(Patient).get(patient_id)
     if not patient:
@@ -69,6 +78,7 @@ def get_doctors(session: Session = Depends(get_db)):
     doctors = session.query(Doctor).all()
     return doctors
 
+
 # gets a specific doctor
 @app.get("/doctors/{doctor_id}")
 def get_doctor(doctor_id: int, db: Session = Depends(get_db)):
@@ -76,6 +86,7 @@ def get_doctor(doctor_id: int, db: Session = Depends(get_db)):
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
     return doctor
+
 
 # adding a doctor
 @app.post("/doctors")
